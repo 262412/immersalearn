@@ -26,178 +26,166 @@ import { useAppStore } from "@/stores/session-store";
 import type { StudentPreferences } from "@/lib/types";
 
 const GENRES = [
-  { id: "adventure" as const, label: "Adventure", icon: Sword, desc: "Explore, discover, and overcome challenges" },
-  { id: "mystery" as const, label: "Mystery", icon: Search, desc: "Gather clues and solve puzzles" },
-  { id: "simulation" as const, label: "Simulation", icon: Gamepad2, desc: "Make decisions and see consequences" },
-  { id: "roleplay" as const, label: "Role-Play", icon: Users, desc: "Become a character in the world" },
-  { id: "documentary" as const, label: "Documentary", icon: Film, desc: "Witness and investigate firsthand" },
+  { id: "adventure" as const, label: "Adventure", icon: Sword, desc: "Go on a fun journey!" },
+  { id: "mystery" as const, label: "Mystery", icon: Search, desc: "Find clues and solve puzzles!" },
+  { id: "simulation" as const, label: "Simulation", icon: Gamepad2, desc: "Try things and see what happens!" },
+  { id: "roleplay" as const, label: "Role-Play", icon: Users, desc: "Pretend to be someone cool!" },
+  { id: "documentary" as const, label: "Explorer", icon: Film, desc: "Discover amazing things!" },
 ];
 
 const DIFFICULTIES = [
-  { id: "easy" as const, label: "Guided", desc: "More hints and scaffolding" },
-  { id: "medium" as const, label: "Balanced", desc: "Moderate challenge" },
-  { id: "hard" as const, label: "Expert", desc: "Minimal hints, maximum depth" },
+  { id: "easy" as const, label: "Beginner (K-2)", desc: "Lots of help, simple words" },
+  { id: "medium" as const, label: "Explorer (3-4)", desc: "Some help, a bit more to think about" },
+  { id: "hard" as const, label: "Challenger (5-6)", desc: "Less help, bigger challenges" },
 ];
 
-// ---- Subject Presets & Curriculum Options ----
+// ---- Subject Presets & Curriculum Options (Primary School) ----
 const SUBJECT_PRESETS = [
-  { id: "art", label: "Art", curricula: ["GCSE AQA Art", "GCSE Edexcel Art", "A-Level Art", "IB Visual Arts", "AP Art History"] },
-  { id: "math", label: "Mathematics", curricula: ["GCSE AQA Maths", "GCSE Edexcel Maths", "A-Level Maths", "IB Mathematics", "AP Calculus"] },
-  { id: "physics", label: "Physics", curricula: ["GCSE AQA Physics", "GCSE Edexcel Physics", "A-Level Physics", "IB Physics", "AP Physics"] },
-  { id: "chemistry", label: "Chemistry", curricula: ["GCSE AQA Chemistry", "A-Level Chemistry", "IB Chemistry", "AP Chemistry"] },
-  { id: "biology", label: "Biology", curricula: ["GCSE AQA Biology", "A-Level Biology", "IB Biology", "AP Biology"] },
-  { id: "history", label: "History", curricula: ["GCSE AQA History", "GCSE Edexcel History", "A-Level History", "IB History", "AP World History"] },
-  { id: "geography", label: "Geography", curricula: ["GCSE AQA Geography", "A-Level Geography", "IB Geography", "AP Human Geography"] },
-  { id: "literature", label: "Literature", curricula: ["GCSE English Lit", "A-Level English Lit", "IB Language & Lit", "AP English"] },
-  { id: "cs", label: "Computer Science", curricula: ["GCSE AQA CS", "A-Level CS", "IB CS", "AP CS"] },
+  { id: "art", label: "Art & Craft", curricula: ["KS1 Art (Ages 5-7)", "KS2 Art (Ages 7-11)", "Primary Art General", "Montessori Art"] },
+  { id: "math", label: "Maths", curricula: ["KS1 Maths (Ages 5-7)", "KS2 Maths (Ages 7-11)", "Primary Maths General", "Singapore Maths"] },
+  { id: "science", label: "Science", curricula: ["KS1 Science (Ages 5-7)", "KS2 Science (Ages 7-11)", "Primary Science General", "NGSS Elementary"] },
+  { id: "history", label: "History", curricula: ["KS1 History (Ages 5-7)", "KS2 History (Ages 7-11)", "Primary History General"] },
+  { id: "geography", label: "Geography", curricula: ["KS1 Geography (Ages 5-7)", "KS2 Geography (Ages 7-11)", "Primary Geography General"] },
+  { id: "english", label: "English / Reading", curricula: ["KS1 English (Ages 5-7)", "KS2 English (Ages 7-11)", "Primary Literacy General"] },
+  { id: "music", label: "Music", curricula: ["KS1 Music (Ages 5-7)", "KS2 Music (Ages 7-11)", "Primary Music General"] },
+  { id: "nature", label: "Nature & Animals", curricula: ["KS1 Living Things", "KS2 Living Things", "Primary Nature Study"] },
   { id: "other", label: "Other", curricula: ["Custom"] },
 ];
 
 // ---- Demo Texts (multi-subject) ----
 const DEMOS: Record<string, { subject: string; topic: string; curriculum: string; text: string }> = {
   art: {
-    subject: "Art", topic: "The Renaissance Masters", curriculum: "GCSE AQA Art",
-    text: `The Renaissance: A Revolution in Art (14th–17th Century)
+    subject: "Art & Craft", topic: "Colours and Painting", curriculum: "KS1 Art (Ages 5-7)",
+    text: `Colours and Painting for Kids
 
-The Renaissance, meaning "rebirth," was a cultural movement that began in Florence, Italy in the 14th century and spread across Europe. It marked a dramatic shift from the flat, symbolic art of the Medieval period to naturalistic, human-centered works.
+Primary Colours:
+There are three primary colours: red, blue, and yellow. These are special because you cannot make them by mixing other colours — but you can mix them to make new colours!
 
-Key Techniques Developed:
-- Linear Perspective: Filippo Brunelleschi demonstrated in 1415 that parallel lines converge at a vanishing point, creating the illusion of depth on a flat surface. Leon Battista Alberti later published "De Pictura" (1435) formalizing these rules.
-- Chiaroscuro: The use of strong contrasts between light and dark to give the illusion of three-dimensional volume. Leonardo da Vinci was a master of this technique, notably in the Mona Lisa.
-- Sfumato: A technique of blending colors and tones so subtly that there are no harsh outlines — like smoke dissolving. Leonardo's sfumato created the mysterious smile of the Mona Lisa.
-- Fresco: Painting on wet plaster so the pigment bonds with the wall. Michelangelo's Sistine Chapel ceiling (1508–1512) is the most famous fresco, covering over 5,000 square feet.
+Mixing Colours:
+- Red + Blue = Purple
+- Blue + Yellow = Green
+- Red + Yellow = Orange
+These new colours are called secondary colours.
 
-Major Artists:
-- Leonardo da Vinci (1452–1519): Painter, scientist, inventor. Key works: Mona Lisa, The Last Supper, Vitruvian Man. He filled notebooks with anatomical studies that influenced his art.
-- Michelangelo Buonarroti (1475–1564): Sculptor, painter, architect. Key works: David (1504, marble, 5.17m tall), Sistine Chapel ceiling, the dome of St. Peter's Basilica.
-- Raphael Sanzio (1483–1520): Known for clarity and harmony. Key work: The School of Athens (1509–1511), which depicts Plato, Aristotle, and other philosophers in a grand architectural setting.
-- Sandro Botticelli (1445–1510): Key work: The Birth of Venus (c. 1485), depicting the goddess Venus emerging from the sea.
+Warm and Cool Colours:
+- Warm colours are red, orange, and yellow. They remind us of fire and sunshine. They can make a painting feel happy or exciting.
+- Cool colours are blue, green, and purple. They remind us of water and ice. They can make a painting feel calm or peaceful.
 
-Patronage played a crucial role. The Medici family of Florence funded many artists. Pope Julius II commissioned both Michelangelo's Sistine Chapel and Raphael's Vatican frescoes.
+Famous Artists Who Loved Colour:
+- Vincent van Gogh painted "Starry Night" using swirling blues and bright yellows. He used thick paint you can almost feel!
+- Claude Monet painted water lilies in his garden. He used soft colours and small dots of paint to show how light changes.
+- Frida Kahlo used bright reds, greens, and yellows in her paintings. She often painted pictures of herself with flowers and animals.
 
-The Renaissance fundamentally changed how artists saw the world — not as a symbol of divine order, but as a subject worthy of careful observation and faithful representation.`,
+Painting Tools:
+- Brushes come in different sizes. Big brushes cover large areas. Small brushes are for details.
+- You can also paint with sponges, fingers, or even leaves!
+- Always clean your brush before using a new colour, or the colours will get muddy.`,
   },
   math: {
-    subject: "Mathematics", topic: "Geometry — Pythagoras and Trigonometry", curriculum: "GCSE AQA Maths",
-    text: `Pythagoras' Theorem and Introduction to Trigonometry
+    subject: "Maths", topic: "Shapes and Patterns", curriculum: "KS1 Maths (Ages 5-7)",
+    text: `Shapes and Patterns
 
-Pythagoras' Theorem:
-In any right-angled triangle, the square of the hypotenuse (the side opposite the right angle) is equal to the sum of the squares of the other two sides. Written as: a² + b² = c², where c is the hypotenuse.
+2D Shapes (flat shapes you can draw):
+- Circle: perfectly round, like a ball or the sun. It has 0 straight sides and 0 corners.
+- Triangle: has 3 straight sides and 3 corners. A slice of pizza is shaped like a triangle!
+- Square: has 4 equal sides and 4 corners. All corners are the same. A window can be a square.
+- Rectangle: has 4 sides and 4 corners, but two sides are longer than the other two. A door is a rectangle.
 
-Example: If a = 3 cm and b = 4 cm, then c² = 9 + 16 = 25, so c = 5 cm. This is the famous 3-4-5 right triangle.
+3D Shapes (solid shapes you can hold):
+- Sphere: shaped like a ball. It is round everywhere.
+- Cube: shaped like a dice. It has 6 flat faces, all squares.
+- Cylinder: shaped like a tin can. It has 2 circles (top and bottom) and 1 curved side.
+- Cone: shaped like an ice cream cone. It has 1 circle at the bottom and a point at the top.
 
-The theorem can be used to:
-- Find the length of a missing side in a right-angled triangle
-- Check if a triangle is right-angled (if a² + b² = c² holds, it is)
-- Calculate distances in coordinate geometry (the distance between two points)
+Patterns:
+A pattern is something that repeats. For example:
+- red, blue, red, blue, red, blue — what comes next? Red!
+- circle, square, circle, square — what comes next? Circle!
+- 2, 4, 6, 8 — what comes next? 10! (counting by 2s)
 
-Pythagorean Triples are sets of three whole numbers that satisfy the theorem: (3,4,5), (5,12,13), (8,15,17), (7,24,25).
+Symmetry:
+Something has symmetry when one half is a mirror image of the other half. A butterfly has symmetry — both wings look the same! You can test symmetry by folding a shape in half.
 
-Trigonometry — SOH CAH TOA:
-In a right-angled triangle, three trigonometric ratios relate the angles to the side lengths:
-- sin(θ) = Opposite / Hypotenuse (SOH)
-- cos(θ) = Adjacent / Hypotenuse (CAH)
-- tan(θ) = Opposite / Adjacent (TOA)
-
-Where θ (theta) is the angle you're working with (not the right angle).
-
-Example: In a right triangle where the angle θ = 30°, the hypotenuse = 10 cm:
-- Opposite = 10 × sin(30°) = 10 × 0.5 = 5 cm
-- Adjacent = 10 × cos(30°) = 10 × 0.866 = 8.66 cm
-
-Finding angles: If you know two sides, you can find an angle using inverse functions:
-- θ = sin⁻¹(Opposite / Hypotenuse)
-- θ = cos⁻¹(Adjacent / Hypotenuse)
-- θ = tan⁻¹(Opposite / Adjacent)
-
-Applications include measuring heights of buildings, distances across rivers, angles of elevation and depression, and navigation.`,
+Shapes are everywhere! Look around — can you spot circles, squares, and triangles in your classroom?`,
   },
-  physics: {
-    subject: "Physics", topic: "Newton's Laws of Motion", curriculum: "GCSE AQA Physics",
-    text: `Newton's Laws of Motion
+  science: {
+    subject: "Science", topic: "The Solar System", curriculum: "KS2 Science (Ages 7-11)",
+    text: `Our Solar System
 
-Sir Isaac Newton (1643–1727) published his three laws of motion in "Philosophiæ Naturalis Principia Mathematica" (1687). These laws form the foundation of classical mechanics.
+The Sun:
+The Sun is a star — a giant ball of hot, glowing gas. It is so big that about 1.3 million Earths could fit inside it! The Sun gives us light and warmth. Without the Sun, Earth would be dark and freezing cold.
 
-First Law (Law of Inertia):
-An object at rest stays at rest, and an object in motion stays in motion at constant velocity, unless acted upon by an unbalanced force.
-- Inertia is the tendency of an object to resist changes in its state of motion
-- A heavier object has more inertia than a lighter one
-- Example: A ball rolling on a flat surface will eventually stop due to friction (an external force). Without friction, it would roll forever.
+The 8 Planets (in order from the Sun):
+1. Mercury — the smallest planet and closest to the Sun. It is very hot during the day and very cold at night.
+2. Venus — the hottest planet! It is covered in thick clouds that trap heat. It spins backwards compared to most planets.
+3. Earth — our home! It is the only planet we know of that has liquid water and living things.
+4. Mars — called the Red Planet because its soil contains rusty iron. Scientists have sent robots called rovers to explore it.
+5. Jupiter — the biggest planet! It has a Great Red Spot, which is actually a giant storm bigger than Earth.
+6. Saturn — famous for its beautiful rings made of ice and rock.
+7. Uranus — an ice giant that tilts on its side.
+8. Neptune — the farthest planet, very cold and windy.
 
-Second Law (F = ma):
-The acceleration of an object is directly proportional to the net force acting on it and inversely proportional to its mass. Force = mass × acceleration (F = ma).
-- Force is measured in Newtons (N). 1 N = 1 kg × 1 m/s²
-- If you double the force on an object, its acceleration doubles
-- If you double the mass, the acceleration halves for the same force
-- Example: A 2 kg object with a net force of 10 N accelerates at 5 m/s²
+How to remember the order: My Very Excited Mother Just Served Us Nachos!
 
-Third Law (Action-Reaction):
-For every action, there is an equal and opposite reaction. When object A exerts a force on object B, object B exerts an equal force in the opposite direction on object A.
-- The forces act on DIFFERENT objects
-- Example: When you push against a wall, the wall pushes back on you with equal force
-- Rocket propulsion: hot gas is expelled downward (action), the rocket moves upward (reaction)
-- Walking: your foot pushes backward on the ground, the ground pushes you forward
+The Moon:
+Earth has one moon. The Moon orbits (goes around) Earth about once every 27 days. It doesn't make its own light — it reflects light from the Sun. That's why the Moon looks bright at night!
 
-Weight vs Mass:
-- Mass is the amount of matter in an object (measured in kg, constant everywhere)
-- Weight is the force of gravity on an object: W = mg, where g = 9.8 m/s² on Earth
-- An astronaut has the same mass on the Moon but weighs about 1/6 as much because the Moon's gravity is weaker (g ≈ 1.6 m/s²)
+Day and Night:
+Earth spins like a top (this is called rotation). One full spin takes 24 hours — that's one day. The side facing the Sun has daytime. The side facing away has nighttime.
 
-Resultant Forces:
-When multiple forces act on an object, the resultant (net) force determines the motion. If forces are balanced (net force = 0), the object is in equilibrium — it stays still or moves at constant velocity.`,
+A year is how long it takes Earth to go all the way around the Sun — about 365 days.`,
   },
   history: {
-    subject: "History", topic: "The Silk Road", curriculum: "GCSE AQA History",
-    text: `The Silk Road: Ancient Trade Routes Connecting East and West
+    subject: "History", topic: "Ancient Egypt", curriculum: "KS2 History (Ages 7-11)",
+    text: `Ancient Egypt — Land of Pharaohs and Pyramids
 
-The Silk Road was a network of trade routes connecting China and the Far East with the Middle East and Europe. Established when the Han Dynasty in China officially opened trade with the West in 130 B.C., the Silk Road routes remained in use until A.D. 1453, when the Ottoman Empire boycotted trade with China and closed them.
+Where and When:
+Ancient Egypt was a civilisation that lasted over 3,000 years, from about 3100 BC to 30 BC. It was in North Africa, along the River Nile. The Nile was very important — its floods brought rich soil for growing food.
 
-The Silk Road was not a single route but rather a series of major trade routes spanning roughly 4,000 miles. The main overland route started in Chang'an (modern Xi'an), the capital of the Han Dynasty. From Chang'an, the road headed northwest through the Hexi Corridor to Dunhuang, where it split into northern and southern routes around the Taklamakan Desert.
+Pharaohs:
+Pharaohs were the kings and queens of Egypt. People believed pharaohs were part god, part human. Some famous pharaohs:
+- Tutankhamun (King Tut): Became pharaoh when he was only 9 years old! His golden tomb was discovered in 1922 by Howard Carter.
+- Cleopatra: The last pharaoh of Egypt. She was very clever and could speak nine languages.
+- Hatshepsut: One of the few female pharaohs. She built many beautiful temples.
 
-Key trade goods traveling east to west included silk, porcelain, tea, spices (cinnamon, ginger), paper, and gunpowder. Goods traveling west to east included gold, silver, glassware, wool textiles, horses from Central Asia, and grapes.
+Pyramids:
+The pyramids were giant tombs built for pharaohs. The Great Pyramid of Giza is the biggest — it was the tallest building in the world for over 3,800 years! It is made of about 2.3 million stone blocks, each weighing as much as a car.
 
-The Silk Road was not just about trade in goods. It was a major conduit for the exchange of ideas, religions, and technologies. Buddhism spread from India to China along the Silk Road. Islam later traveled the same routes. Technologies such as papermaking traveled westward.
+Mummies:
+When important people died, their bodies were preserved as mummies. The Egyptians believed you needed your body in the afterlife. The process took about 70 days!
 
-Key figures:
-- Zhang Qian (张骞): A Han Dynasty diplomat who first explored the western regions in 138 B.C. He was captured by the Xiongnu and held for 13 years before escaping and completing his mission.
-- Emperor Wu of Han (汉武帝): Commissioned Zhang Qian's expedition and actively promoted trade along the Silk Road.
-- Marco Polo: The Venetian merchant who traveled the Silk Road in the 13th century and wrote extensively about his experiences in China.
+Hieroglyphics:
+Ancient Egyptians used a writing system called hieroglyphics — pictures and symbols instead of letters. There were over 700 different hieroglyphics! We learned to read them thanks to the Rosetta Stone, found in 1799.
 
-Major stops along the route included Samarkand (in modern Uzbekistan), a major trading hub. The caravanserais (roadside inns) provided food, water, and shelter, typically spaced 30–40 km apart — roughly a day's journey by camel.`,
+Daily Life:
+- Children played with dolls, board games, and toy animals
+- People kept cats as pets (cats were considered sacred!)
+- They ate bread, fish, fruits, and vegetables
+- Most clothes were made of white linen because it was so hot`,
   },
-  biology: {
-    subject: "Biology", topic: "Cell Division — Mitosis", curriculum: "GCSE AQA Biology",
-    text: `Cell Division: Mitosis
+  nature: {
+    subject: "Nature & Animals", topic: "Life Cycle of a Butterfly", curriculum: "KS1 Living Things",
+    text: `The Life Cycle of a Butterfly
 
-Mitosis is the process by which a single cell divides to produce two genetically identical daughter cells. It is essential for growth, repair of damaged tissue, and asexual reproduction.
+Butterflies go through four amazing stages of change, called metamorphosis:
 
-The Cell Cycle:
-Before mitosis begins, the cell goes through interphase — a preparation stage where:
-- The cell grows and carries out normal functions (G1 phase)
-- DNA is replicated so each chromosome now has two identical copies (sister chromatids) joined at the centromere (S phase)
-- The cell checks for errors and prepares for division (G2 phase)
+Stage 1 — Egg:
+A mother butterfly lays tiny eggs on a leaf. The eggs are very small, about the size of a pinhead. She chooses the leaf carefully — it must be the right kind of plant for her babies to eat! Different butterflies like different plants.
 
-The Four Stages of Mitosis:
+Stage 2 — Caterpillar (Larva):
+After a few days, a tiny caterpillar hatches from the egg. The caterpillar is very hungry! It eats and eats and eats the leaves. As it grows bigger, its skin gets too tight, so it sheds its old skin and grows a new one. This happens about 4-5 times. A caterpillar can grow to be 100 times bigger than when it hatched!
 
-1. Prophase: Chromosomes condense and become visible. The nuclear membrane begins to break down. Spindle fibers form from the centrioles and extend across the cell.
+Stage 3 — Chrysalis (Pupa):
+When the caterpillar is big enough, it hangs upside down from a branch and forms a hard shell around itself called a chrysalis. Inside the chrysalis, something magical happens — the caterpillar's body completely changes! This takes about 10-14 days.
 
-2. Metaphase: Chromosomes line up along the middle (equator) of the cell. Spindle fibers attach to the centromere of each chromosome. This ensures each daughter cell will get one copy.
+Stage 4 — Butterfly (Adult):
+A beautiful butterfly comes out of the chrysalis! At first its wings are wet and crumpled. It has to wait for them to dry and straighten out. Then it can fly! Adult butterflies drink nectar from flowers using a long tongue called a proboscis, which works like a straw.
 
-3. Anaphase: The centromeres split. Sister chromatids are pulled to opposite poles of the cell by the shortening spindle fibers. The cell elongates.
-
-4. Telophase: Chromatids arrive at opposite poles. Nuclear membranes reform around each set of chromosomes. Chromosomes begin to decondense.
-
-Cytokinesis: The cytoplasm divides, creating two separate daughter cells. In animal cells, the membrane pinches inward (cleavage furrow). In plant cells, a cell plate forms.
-
-Result: Two genetically identical diploid cells, each with the same number of chromosomes as the parent cell (46 in humans).
-
-Importance of Mitosis:
-- Growth: A human starts as a single fertilized egg and grows to trillions of cells through mitosis
-- Repair: When you cut your skin, mitosis produces new cells to heal the wound
-- Replacement: Red blood cells live only about 120 days and must be constantly replaced
-
-Cancer and Uncontrolled Mitosis:
-Cancer occurs when mutations disrupt the normal controls on the cell cycle, leading to uncontrolled cell division. Tumors form when cells divide without stopping.`,
+Fun Facts:
+- Butterflies taste with their feet!
+- A butterfly's wings are covered in tiny colourful scales
+- Monarch butterflies travel over 3,000 miles to find warm weather — that's like flying from London to Egypt!
+- There are about 20,000 different kinds of butterflies in the world`,
   },
 };
 
@@ -207,9 +195,9 @@ export default function HomePage() {
 
   const [step, setStep] = useState(1);
   const [textContent, setTextContent] = useState("");
-  const [subject, setSubject] = useState("Art");
+  const [subject, setSubject] = useState("Art & Craft");
   const [topic, setTopic] = useState("");
-  const [curriculum, setCurriculum] = useState("GCSE AQA Art");
+  const [curriculum, setCurriculum] = useState("KS1 Art (Ages 5-7)");
   const [genre, setGenre] = useState<StudentPreferences["genre"]>("adventure");
   const [difficulty, setDifficulty] = useState<StudentPreferences["difficulty"]>("medium");
   const [studentName, setStudentName] = useState("");

@@ -6,7 +6,50 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import type { Script, Scene, Act, SceneGraph } from "@/lib/types";
-import { ASSET_REGISTRY } from "@/lib/scene/asset-registry";
+import { ASSET_REGISTRY, type AssetEntry } from "@/lib/scene/asset-registry";
+
+// Filter assets relevant to the scene to reduce tokens sent to AI
+function getRelevantAssets(setting: Record<string, string>, subject?: string): AssetEntry[] {
+  const keywords = Object.values(setting).join(" ").toLowerCase().split(/\s+/);
+  const subjectLower = (subject || "").toLowerCase();
+
+  // Always include universal assets
+  const universal = ASSET_REGISTRY.filter((a) => a.domain.includes("universal"));
+
+  // Match by domain (subject)
+  const byDomain = ASSET_REGISTRY.filter(
+    (a) =>
+      !a.domain.includes("universal") &&
+      a.domain.some(
+        (d) =>
+          subjectLower.includes(d) ||
+          d.includes(subjectLower) ||
+          keywords.some((kw) => d.includes(kw) || kw.includes(d))
+      )
+  );
+
+  // Match by tags (setting keywords)
+  const byTags = ASSET_REGISTRY.filter(
+    (a) =>
+      !a.domain.includes("universal") &&
+      !byDomain.includes(a) &&
+      a.tags.some((t) => keywords.some((kw) => t.includes(kw) || kw.includes(t)))
+  );
+
+  // Deduplicate and limit
+  const combined = [...universal, ...byDomain, ...byTags];
+  const seen = new Set<string>();
+  const result: AssetEntry[] = [];
+  for (const a of combined) {
+    if (!seen.has(a.id)) {
+      seen.add(a.id);
+      result.push(a);
+    }
+  }
+
+  // Send compact version — only id, name, tags, primitive_fallback
+  return result.slice(0, 40);
+}
 
 const SYSTEM_PROMPT = `You are a 3D scene director for educational experiences. Given a script scene description, you create detailed 3D scene graphs that can be rendered in a web browser.
 
@@ -112,25 +155,24 @@ ${(scene.interactions || [])
 ## Completion Condition
 ${scene.completion_condition || "Explore the scene and interact with NPCs"}
 
-## Available Assets
-\`\`\`json
-${JSON.stringify(ASSET_REGISTRY, null, 2)}
-\`\`\`
+## Available Assets (filtered for this scene)
+${getRelevantAssets(setting, script.meta?.subject).map((a) =>
+  `- id:"${a.id}" (${a.primitive_fallback.type}, color:${a.primitive_fallback.color}, scale:[${a.primitive_fallback.scale}]) — ${a.name}`
+).join("\n")}
 
 ## Instructions
-Create a complete SceneGraph JSON for this scene.
-- Place all NPCs with appropriate positions and behaviors
-- Create interactive objects for each interaction
-- Set up environment (skybox, lighting, terrain) matching the setting
-- Add at least one cinematic sequence for the scene intro
-- Define triggers for scene completion
-- Use asset IDs from the registry where available; use primitives as fallback
+Create a SceneGraph JSON. Keep it focused:
+- Place NPCs from the character list above (use their exact id/name)
+- Create 3-5 interactive objects with on_interact actions
+- Set up environment matching the setting
+- Use asset IDs where available; use primitives as fallback
+- All positions as [x,y,z] arrays, particles as array
 
-Return ONLY a valid JSON object.`;
+Return ONLY valid JSON, no markdown fences.`;
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8000,
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 4000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userMessage }],
   });
