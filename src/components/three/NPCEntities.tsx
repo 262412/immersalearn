@@ -71,6 +71,12 @@ function NPCEntity({
       ref={meshRef}
       position={position}
       rotation={rotation.map((r) => (r * Math.PI) / 180) as [number, number, number]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onInteract(npc.id);
+      }}
+      onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+      onPointerOut={() => { document.body.style.cursor = "default"; }}
     >
       {/* NPC Body */}
       {avatar.model_url ? (

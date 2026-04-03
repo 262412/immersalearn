@@ -4,6 +4,7 @@
 // Used by the Builder Agent's tool_use loop.
 // ============================================
 
+import { findAssetById } from "@/lib/scene/asset-registry";
 import type {
   SceneGraph,
   EnvironmentConfig,
@@ -115,6 +116,7 @@ export class SceneGraphBuilder {
   placeStructure(spec: {
     id: string;
     label: string;
+    asset_id?: string;
     position: Vec3;
     scale?: Vec3;
     color?: string;
@@ -122,25 +124,44 @@ export class SceneGraphBuilder {
     type?: string;
     model_url?: string;
   }): string {
+    // Look up asset registry for compound_parts
+    const asset = spec.asset_id ? findAssetById(spec.asset_id) : undefined;
+    const fallbackColor = asset?.primitive_fallback.color || spec.color || "#888888";
+    const fallbackPrimitive = asset?.primitive_fallback.type || spec.primitive || "box";
+    const fallbackScale = asset?.primitive_fallback.scale || spec.scale || [1, 1, 1];
+
     const s: Structure = {
       id: safeStr(spec.id, `struct_${this.structures.length}`),
-      type: (spec.type || "decoration") as any,
+      type: (spec.type || asset?.category || "decoration") as any,
+      asset_id: spec.asset_id,
       model_url: spec.model_url,
-      primitive: (spec.primitive || "box") as any,
+      primitive: fallbackPrimitive as any,
       position: safeVec3(spec.position, [0, 0, 0]),
       rotation: [0, 0, 0],
-      scale: safeVec3(spec.scale, [1, 1, 1]),
+      scale: safeVec3(spec.scale, fallbackScale as Vec3),
       material: {
-        color: safeStr(spec.color, "#888888"),
+        color: safeStr(spec.color, fallbackColor),
         metalness: 0.1,
         roughness: 0.8,
         opacity: 1,
       },
       label: spec.label,
       interactive: false,
+      // Resolve compound_parts from asset registry as children
+      children: asset?.compound_parts?.map((part, i) => ({
+        id: `${spec.id}_part_${i}`,
+        type: "decoration" as const,
+        primitive: part.primitive as any,
+        position: part.offset,
+        rotation: [0, 0, 0] as [number, number, number],
+        scale: part.scale,
+        material: { color: part.color, metalness: 0.1, roughness: 0.8, opacity: 1 },
+        interactive: false,
+      })),
     };
     this.structures.push(s);
-    return `Placed structure "${spec.label}" at [${s.position}]`;
+    const assetInfo = asset ? ` (asset: ${asset.name})` : "";
+    return `Placed structure "${spec.label}"${assetInfo} at [${s.position}]`;
   }
 
   // ---- Tool: add_npc ----
@@ -183,6 +204,7 @@ export class SceneGraphBuilder {
   addInteractiveObject(spec: {
     id: string;
     name: string;
+    asset_id?: string;
     position: Vec3;
     scale?: Vec3;
     color?: string;
@@ -191,14 +213,16 @@ export class SceneGraphBuilder {
     examine_description: string;
     model_url?: string;
   }): string {
+    const asset = spec.asset_id ? findAssetById(spec.asset_id) : undefined;
     const obj: InteractiveObject = {
       id: safeStr(spec.id, `obj_${this.interactiveObjects.length}`),
       name: safeStr(spec.name, `Object ${this.interactiveObjects.length + 1}`),
+      asset_id: spec.asset_id,
       model_url: spec.model_url,
-      primitive: (spec.primitive || "sphere") as any,
+      primitive: (asset?.primitive_fallback.type || spec.primitive || "sphere") as any,
       position: safeVec3(spec.position, [0, 0.5, 0]),
       rotation: [0, 0, 0],
-      scale: safeVec3(spec.scale, [0.5, 0.5, 0.5]),
+      scale: safeVec3(spec.scale, (asset?.primitive_fallback.scale as Vec3) || [0.5, 0.5, 0.5]),
       material: {
         color: safeStr(spec.color, "#FFD700"),
         emissive: "#332200",

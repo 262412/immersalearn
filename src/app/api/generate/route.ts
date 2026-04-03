@@ -52,18 +52,22 @@ export async function POST(req: NextRequest) {
     console.log("[Generate] Step 3: Assembling...");
     const sceneGraph = assembleScene(rawSceneGraph, worldPlan);
 
-    // Step 4: Asset Agent — search for real 3D models (parallel, non-blocking)
-    console.log("[Generate] Step 4: Searching for 3D models...");
-    const startAssets = Date.now();
-    try {
-      await enhanceSceneWithModels(sceneGraph, worldPlan);
-    } catch (e) {
-      // Asset enhancement is best-effort — don't fail the whole pipeline
-      console.log("[Generate] Asset search skipped (non-fatal):", (e as Error).message);
+    // Step 4: Asset Agent — optional Sketchfab model search
+    if (process.env.ENABLE_SKETCHFAB === "true") {
+      console.log("[Generate] Step 4: Searching Sketchfab for 3D models...");
+      const startAssets = Date.now();
+      try {
+        await enhanceSceneWithModels(sceneGraph, worldPlan);
+        console.log(`[Generate] Sketchfab done in ${((Date.now() - startAssets) / 1000).toFixed(1)}s`);
+      } catch (e) {
+        console.log("[Generate] Sketchfab skipped:", (e as Error).message);
+      }
+    } else {
+      console.log("[Generate] Step 4: Sketchfab disabled — using compound primitives (set ENABLE_SKETCHFAB=true to enable)");
     }
+
     console.log(
-      `[Generate] Assets resolved in ${((Date.now() - startAssets) / 1000).toFixed(1)}s.`,
-      `Final scene: ${sceneGraph.structures.length} structures,`,
+      `[Generate] Final scene: ${sceneGraph.structures.length} structures,`,
       `${sceneGraph.npcs.length} NPCs,`,
       `${sceneGraph.interactive_objects.length} objects`
     );

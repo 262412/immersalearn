@@ -285,19 +285,7 @@ export default function ExperiencePage() {
     []
   );
 
-  // Listen for raycast interaction events from PlayerController
-  useEffect(() => {
-    const onSceneInteract = (e: Event) => {
-      const { type, id } = (e as CustomEvent).detail;
-      if (type === "npc") {
-        handleNPCInteract(id);
-      } else if (type === "object") {
-        handleObjectInteract(id);
-      }
-    };
-    window.addEventListener("scene-interact", onSceneInteract);
-    return () => window.removeEventListener("scene-interact", onSceneInteract);
-  }, [handleNPCInteract, handleObjectInteract]);
+  // onClick events now handled directly on 3D meshes via R3F (no pointer lock)
 
   // Choice completion
   const handleChoiceComplete = useCallback(
@@ -360,7 +348,6 @@ export default function ExperiencePage() {
         sceneGraph={currentSceneGraph}
         onNPCInteract={handleNPCInteract}
         onObjectInteract={handleObjectInteract}
-        onTriggerActivated={handleTriggerActivated}
       />
 
       {/* HUD Overlay */}

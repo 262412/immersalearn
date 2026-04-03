@@ -71,7 +71,14 @@ function InteractiveObjectEntity({
   const emissiveIntensity = material.emissiveIntensity || (isHovered ? 0.5 : 0);
 
   return (
-    <group>
+    <group
+      onClick={(e) => {
+        e.stopPropagation();
+        onInteract(obj.id);
+      }}
+      onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+      onPointerOut={() => { document.body.style.cursor = "default"; }}
+    >
       {obj.model_url ? (
         <ModelLoader
           url={obj.model_url}

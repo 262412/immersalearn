@@ -96,17 +96,32 @@ export function DialoguePanel({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
+        {/* Quick response buttons (for young children who can't type) */}
+        {!isLoading && messages.length > 0 && (
+          <div className="flex flex-wrap gap-2 px-3 pt-3 border-t border-gray-700">
+            {["Tell me more! 🤩", "What does that mean? 🤔", "What should I do? 🗺️", "That's so cool! ⭐"].map((text) => (
+              <button
+                key={text}
+                onClick={() => onSendMessage(text)}
+                className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600/40 border border-amber-600/30 text-amber-200 text-xs rounded-full transition-colors"
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Text input (for older children who can type) */}
         <form
           onSubmit={handleSubmit}
-          className="flex items-center gap-2 p-3 border-t border-gray-700"
+          className="flex items-center gap-2 p-3"
         >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your response..."
-            className="flex-1 bg-gray-800 text-white text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500/50 placeholder-gray-500"
+            placeholder="Or type your own message..."
+            className="flex-1 bg-gray-800 text-white text-xs rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-amber-500/50 placeholder-gray-500"
             disabled={isLoading}
           />
           <button

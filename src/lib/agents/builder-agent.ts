@@ -8,6 +8,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { WorldPlan, WorldScene } from "@/lib/types/world-plan";
 import type { SceneGraph } from "@/lib/types/scene-graph";
+import { getAssetsForDomain, ASSET_REGISTRY } from "@/lib/scene/asset-registry";
 import { SceneGraphBuilder } from "@/lib/scene/scene-builder";
 
 const SYSTEM_PROMPT = `You are a 3D scene builder for an educational children's game. You receive a WorldPlan scene description and must build it by calling tools.
@@ -68,10 +69,11 @@ const BUILDER_TOOLS: Anthropic.Messages.Tool[] = [
       properties: {
         id: { type: "string" },
         label: { type: "string", description: "Display name" },
+        asset_id: { type: "string", description: "Asset ID from the available assets list (PREFERRED — gives better visuals)" },
         position: { type: "array", items: { type: "number" }, description: "[x, y, z]" },
         scale: { type: "array", items: { type: "number" }, description: "[width, height, depth]" },
-        color: { type: "string", description: "Hex color" },
-        primitive: { type: "string", enum: ["box", "cylinder", "sphere", "cone"] },
+        color: { type: "string", description: "Hex color (fallback if no asset_id)" },
+        primitive: { type: "string", enum: ["box", "cylinder", "sphere", "cone"], description: "Fallback shape if no asset_id" },
         type: { type: "string", enum: ["building", "landmark", "decoration", "terrain_feature"] },
       },
       required: ["id", "label", "position", "scale", "color", "primitive"],
@@ -101,14 +103,15 @@ const BUILDER_TOOLS: Anthropic.Messages.Tool[] = [
       properties: {
         id: { type: "string" },
         name: { type: "string" },
+        asset_id: { type: "string", description: "Asset ID from available assets (PREFERRED)" },
         position: { type: "array", items: { type: "number" }, description: "[x, y, z]" },
         scale: { type: "array", items: { type: "number" }, description: "[w, h, d]" },
-        color: { type: "string", description: "Hex color" },
-        primitive: { type: "string", enum: ["box", "cylinder", "sphere", "cone"] },
+        color: { type: "string", description: "Hex color (fallback)" },
+        primitive: { type: "string", enum: ["box", "cylinder", "sphere", "cone"], description: "Fallback shape" },
         examine_title: { type: "string", description: "Title shown when examined" },
         examine_description: { type: "string", description: "Educational text shown when examined (simple, for kids)" },
       },
-      required: ["id", "name", "position", "color", "examine_description"],
+      required: ["id", "name", "position", "examine_description"],
     },
   },
   {
@@ -225,6 +228,13 @@ export async function buildScene(
 
 function buildScenePrompt(plan: WorldPlan, scene: WorldScene): string {
   const chars = plan.narrative.characters;
+  const subject = plan.knowledge.subject?.toLowerCase() || "";
+
+  // Get available assets for this subject
+  const assets = getAssetsForDomain(subject);
+  const assetList = assets.length > 0
+    ? assets.map((a) => `  "${a.id}": ${a.name} (${a.category})`).join("\n")
+    : ASSET_REGISTRY.map((a) => `  "${a.id}": ${a.name} (${a.category})`).join("\n");
 
   return `## Build this scene: "${scene.title}"
 
@@ -239,21 +249,25 @@ Learning objective: ${scene.story.objective}
 - Terrain: ${scene.world.terrain}${scene.world.terrain_color ? ` (color: ${scene.world.terrain_color})` : ""}
 - Spatial flow: ${scene.world.spatial_flow}
 
+## AVAILABLE ASSETS (use asset_id when calling place_structure or add_interactive_object!)
+These give MUCH better visuals than raw primitives. Always prefer asset_id over primitive.
+${assetList}
+
 ## Characters to place (MUST add all as NPCs):
-${scene.world.npc_placements.map((npc) => {
+${(scene.world.npc_placements || []).map((npc) => {
   const char = chars.find((c) => c.id === npc.character_id);
   return `- character_ref="${npc.character_id}", name="${char?.name || npc.character_id}", position=[${npc.position}], doing: "${npc.initial_action}"`;
-}).join("\n")}
+}).join("\n") || "- (place all characters from the plan)"}
 
-## Landmarks to place:
-${scene.world.landmarks.map((lm) =>
-  `- id="${lm.id}", "${lm.name}": ${lm.description} — position=[${lm.position}], scale=[${lm.scale}], color=${lm.color}, primitive=${lm.primitive || "box"}`
-).join("\n")}
+## Landmarks to place (use asset_id from the list above!):
+${(scene.world.landmarks || []).map((lm) =>
+  `- id="${lm.id}", "${lm.name}": ${lm.description} — position=[${lm.position}], scale=[${lm.scale}], color=${lm.color}`
+).join("\n") || "- (create appropriate landmarks for the scene)"}
 
 ## Interactive items to place:
-${scene.world.interactive_items.map((item) =>
-  `- id="${item.id}", "${item.name}": examine_text="${item.examine_text}" — position=[${item.position}], color=${item.color}, primitive=${item.primitive || "sphere"}`
-).join("\n")}
+${(scene.world.interactive_items || []).map((item) =>
+  `- id="${item.id}", "${item.name}": examine_text="${item.examine_text}" — position=[${item.position}], color=${item.color}`
+).join("\n") || "- (create 3-5 interactive educational objects)"}
 
-Now build this scene by calling the tools. Start with set_environment, then set_spawn, then place all structures, NPCs, and interactive objects. Call finalize_scene when done.`;
+Build the scene now. For EVERY structure, use an asset_id from the list above when possible. Start with set_environment, then set_spawn, then place structures (with asset_id!), NPCs, and interactive objects. Call finalize_scene when done.`;
 }

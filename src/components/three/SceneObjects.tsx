@@ -63,7 +63,7 @@ function StructureObject({ structure }: { structure: Structure }) {
     >
       <mesh castShadow receiveShadow>
         <PrimitiveGeometry type={primitive} scale={scale} />
-        <meshStandardMaterial {...matProps} />
+        <meshStandardMaterial {...matProps} flatShading />
       </mesh>
 
       {label && <FloatingLabel position={[0, 0, 0]} text={label} height={scale[1] + 0.5} />}
@@ -76,10 +76,11 @@ function StructureObject({ structure }: { structure: Structure }) {
 }
 
 function PrimitiveGeometry({ type, scale }: { type: string; scale: [number, number, number] }) {
+  // Low segment count for intentional low-poly style
   switch (type) {
-    case "sphere": return <sphereGeometry args={[scale[0] / 2, 16, 16]} />;
-    case "cylinder": return <cylinderGeometry args={[scale[0] / 2, scale[0] / 2, scale[1], 16]} />;
-    case "cone": return <coneGeometry args={[scale[0] / 2, scale[1], 16]} />;
+    case "sphere": return <sphereGeometry args={[scale[0] / 2, 8, 6]} />;
+    case "cylinder": return <cylinderGeometry args={[scale[0] / 2, scale[0] / 2, scale[1], 8]} />;
+    case "cone": return <coneGeometry args={[scale[0] / 2, scale[1], 8]} />;
     case "box": default: return <boxGeometry args={scale} />;
   }
 }

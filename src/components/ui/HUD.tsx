@@ -1,7 +1,5 @@
 "use client";
 
-import { MapPin, Target, Package, Clock } from "lucide-react";
-
 interface HUDProps {
   sceneName: string;
   objective: string;
@@ -19,7 +17,6 @@ export function HUD({
   totalItems,
   interactionsCompleted,
   totalInteractions,
-  elapsedMinutes,
 }: HUDProps) {
   return (
     <div className="absolute top-0 left-0 right-0 z-40 pointer-events-none">
@@ -27,66 +24,38 @@ export function HUD({
       <div className="flex items-start justify-between p-4">
         {/* Scene info (top-left) */}
         <div className="space-y-2 pointer-events-auto">
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-gray-700/50">
-            <div className="flex items-center gap-2">
-              <MapPin size={14} className="text-amber-400" />
-              <span className="text-white text-sm font-medium">{sceneName}</span>
-            </div>
+          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/10">
+            <div className="text-white text-sm font-bold">{sceneName}</div>
           </div>
-
-          {/* Current objective */}
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-blue-700/30 max-w-xs">
-            <div className="flex items-start gap-2">
-              <Target size={14} className="text-blue-400 shrink-0 mt-0.5" />
-              <span className="text-blue-200 text-xs">{objective}</span>
-            </div>
+          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-amber-500/20 max-w-xs">
+            <div className="text-amber-200 text-xs font-medium">{objective}</div>
           </div>
         </div>
 
-        {/* Stats (top-right) */}
+        {/* Stars collected (top-right) */}
         <div className="flex items-center gap-3 pointer-events-auto">
-          {/* Timer */}
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-gray-700/50">
-            <div className="flex items-center gap-1.5">
-              <Clock size={12} className="text-gray-400" />
-              <span className="text-gray-300 text-xs font-mono">
-                {elapsedMinutes}m
-              </span>
-            </div>
+          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-yellow-500/20 flex items-center gap-2">
+            <span className="text-xl">⭐</span>
+            <span className="text-yellow-300 text-sm font-bold">
+              {interactionsCompleted}/{totalInteractions}
+            </span>
           </div>
-
-          {/* Items */}
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-gray-700/50">
-            <div className="flex items-center gap-1.5">
-              <Package size={12} className="text-amber-400" />
-              <span className="text-amber-200 text-xs">
+          {totalItems > 0 && (
+            <div className="bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-purple-500/20 flex items-center gap-2">
+              <span className="text-xl">🔍</span>
+              <span className="text-purple-300 text-sm font-bold">
                 {itemsCollected}/{totalItems}
               </span>
             </div>
-          </div>
-
-          {/* Progress */}
-          <div className="bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-gray-700/50">
-            <div className="flex items-center gap-1.5">
-              <span className="text-green-400 text-xs">✓</span>
-              <span className="text-green-200 text-xs">
-                {interactionsCompleted}/{totalInteractions}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
-      </div>
-
-      {/* Center crosshair */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-1.5 h-1.5 bg-white/60 rounded-full" />
       </div>
 
       {/* Bottom hint */}
       <div className="absolute bottom-20 left-0 right-0 flex justify-center">
-        <div className="bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-gray-700/30">
-          <span className="text-gray-400 text-xs">
-            WASD to move · Click on characters and objects to interact · ESC to unlock cursor
+        <div className="bg-black/50 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/10">
+          <span className="text-white/70 text-xs">
+            🖱️ Drag to look around · Click on glowing things to explore!
           </span>
         </div>
       </div>

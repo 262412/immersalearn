@@ -48,31 +48,25 @@ function GLBModel({
 }: ModelLoaderProps) {
   const { scene } = useGLTF(url);
 
-  // Clone once, compute bounding box, normalize scale to fit within target scale
-  const { cloned, normalizedScale } = useMemo(() => {
+  // Clone once, normalize: scale to fit target size, bottom sits at y=0
+  const { cloned, normalizedScale, yOffset } = useMemo(() => {
     const c = scene.clone(true);
 
-    // Compute bounding box of the model
+    // Compute bounding box of the original model
     const box = new THREE.Box3().setFromObject(c);
     const size = new THREE.Vector3();
     box.getSize(size);
-
-    // Target size from the scene graph (e.g. [2, 3, 2])
-    const targetW = scale[0] || 1;
-    const targetH = scale[1] || 1;
-    const targetD = scale[2] || 1;
-
-    // Compute uniform scale factor to fit model within target bounds
-    const maxModelDim = Math.max(size.x, size.y, size.z, 0.01);
-    const maxTargetDim = Math.max(targetW, targetH, targetD);
-    const uniformScale = maxTargetDim / maxModelDim;
-
-    // Center the model at origin (so position works correctly)
     const center = new THREE.Vector3();
     box.getCenter(center);
-    c.position.sub(center);
-    // Put bottom of model at y=0
-    c.position.y += (size.y * uniformScale) / 2;
+
+    // Uniform scale: fit the model within the target scale bounds
+    const maxModelDim = Math.max(size.x, size.y, size.z, 0.01);
+    const maxTargetDim = Math.max(scale[0] || 1, scale[1] || 1, scale[2] || 1);
+    const s = maxTargetDim / maxModelDim;
+
+    // Offset to center horizontally and sit bottom on the ground
+    // After scaling, the bottom of the model should be at the group's y=0
+    const bottomY = box.min.y * s;
 
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -86,17 +80,21 @@ function GLBModel({
 
     return {
       cloned: c,
-      normalizedScale: [uniformScale, uniformScale, uniformScale] as [number, number, number],
+      normalizedScale: [s, s, s] as [number, number, number],
+      yOffset: -bottomY, // lift model so bottom is at y=0 of the group
     };
   }, [scene, scale, castShadow, userData]);
 
+  // position from SceneGraph is where the object sits ON the ground
+  // The group is placed at the SceneGraph position, model inside is offset to sit on ground
   return (
-    <primitive
-      object={cloned}
-      position={position}
-      rotation={rotation.map((r) => (r * Math.PI) / 180)}
-      scale={normalizedScale}
-    />
+    <group position={position} rotation={rotation.map((r) => (r * Math.PI) / 180) as [number, number, number]}>
+      <primitive
+        object={cloned}
+        position={[0, yOffset, 0]}
+        scale={normalizedScale}
+      />
+    </group>
   );
 }
 
