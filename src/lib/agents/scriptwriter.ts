@@ -6,6 +6,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import type { KnowledgeGraph, Script, StudentPreferences } from "@/lib/types";
+import { fixJSON } from "@/lib/utils/fix-json";
 
 const SYSTEM_PROMPT = `You are a friendly storyteller who creates fun, interactive 3D adventures for PRIMARY SCHOOL CHILDREN (ages 5-11, below grade 6).
 
@@ -93,7 +94,7 @@ export async function generateScript(
     throw new Error("Failed to extract JSON from scriptwriter response");
   }
 
-  const script: Script = JSON.parse(jsonMatch[1]);
+  const script: Script = JSON.parse(fixJSON(jsonMatch[1]));
 
   if (!script.id) {
     script.id = `script_${Date.now()}`;

@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Html, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import type { NPCInstance } from "@/lib/types/scene-graph";
+import { ModelLoader } from "./ModelLoader";
 
 interface NPCEntitiesProps {
   npcs: NPCInstance[];
@@ -71,32 +72,39 @@ function NPCEntity({
       position={position}
       rotation={rotation.map((r) => (r * Math.PI) / 180) as [number, number, number]}
     >
-      {/* NPC Body — each mesh has userData for raycast detection */}
-      <group>
-        {/* Body */}
-        <mesh castShadow position={[0, 0.75 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
-          <cylinderGeometry
-            args={[0.25 * avatarScale, 0.3 * avatarScale, 1.1 * avatarScale, 8]}
-          />
-          <meshStandardMaterial color={bodyColor} />
-        </mesh>
-
-        {/* Head */}
-        <mesh castShadow position={[0, 1.5 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
-          <sphereGeometry args={[0.2 * avatarScale, 12, 12]} />
-          <meshStandardMaterial color="#F5DEB3" />
-        </mesh>
-
-        {/* Arms */}
-        <mesh castShadow position={[-0.35 * avatarScale, 0.7 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
-          <cylinderGeometry args={[0.06 * avatarScale, 0.06 * avatarScale, 0.7 * avatarScale, 6]} />
-          <meshStandardMaterial color={bodyColor} />
-        </mesh>
-        <mesh castShadow position={[0.35 * avatarScale, 0.7 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
-          <cylinderGeometry args={[0.06 * avatarScale, 0.06 * avatarScale, 0.7 * avatarScale, 6]} />
-          <meshStandardMaterial color={bodyColor} />
-        </mesh>
-      </group>
+      {/* NPC Body */}
+      {avatar.model_url ? (
+        /* GLB model available */
+        <ModelLoader
+          url={avatar.model_url}
+          scale={[avatarScale, avatarScale, avatarScale]}
+          fallbackColor={bodyColor}
+          fallbackPrimitive="cylinder"
+          fallbackScale={[0.4, 1.7, 0.4]}
+          castShadow
+          userData={{ interactId: npc.id, interactType: "npc" }}
+        />
+      ) : (
+        /* Primitive fallback */
+        <group>
+          <mesh castShadow position={[0, 0.75 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
+            <cylinderGeometry args={[0.25 * avatarScale, 0.3 * avatarScale, 1.1 * avatarScale, 8]} />
+            <meshStandardMaterial color={bodyColor} />
+          </mesh>
+          <mesh castShadow position={[0, 1.5 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
+            <sphereGeometry args={[0.2 * avatarScale, 12, 12]} />
+            <meshStandardMaterial color="#F5DEB3" />
+          </mesh>
+          <mesh castShadow position={[-0.35 * avatarScale, 0.7 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
+            <cylinderGeometry args={[0.06 * avatarScale, 0.06 * avatarScale, 0.7 * avatarScale, 6]} />
+            <meshStandardMaterial color={bodyColor} />
+          </mesh>
+          <mesh castShadow position={[0.35 * avatarScale, 0.7 * avatarScale, 0]} userData={{ interactId: npc.id, interactType: "npc" }}>
+            <cylinderGeometry args={[0.06 * avatarScale, 0.06 * avatarScale, 0.7 * avatarScale, 6]} />
+            <meshStandardMaterial color={bodyColor} />
+          </mesh>
+        </group>
+      )}
 
       {/* Name tag + interaction indicator */}
       <Billboard position={[0, 2.0 * avatarScale, 0]}>

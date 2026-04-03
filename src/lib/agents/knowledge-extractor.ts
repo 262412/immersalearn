@@ -6,6 +6,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import type { KnowledgeGraph } from "@/lib/types";
+import { fixJSON } from "@/lib/utils/fix-json";
 
 const SYSTEM_PROMPT = `You are an expert educational content analyst. Your job is to extract a structured knowledge graph from educational materials.
 
@@ -50,7 +51,7 @@ export async function extractKnowledge(
 
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 4000,
+    max_tokens: 6000,
     system: SYSTEM_PROMPT,
     messages: [
       {
@@ -69,7 +70,7 @@ export async function extractKnowledge(
     throw new Error("Failed to extract JSON from knowledge extraction response");
   }
 
-  const kg: KnowledgeGraph = JSON.parse(jsonMatch[1]);
+  const kg: KnowledgeGraph = JSON.parse(fixJSON(jsonMatch[1]));
 
   // Ensure IDs exist
   if (!kg.id) {

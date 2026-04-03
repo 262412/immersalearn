@@ -4,18 +4,26 @@
 // domain: subject/era tags for matching
 // ============================================
 
+export interface CompoundPart {
+  primitive: "box" | "cylinder" | "sphere" | "cone";
+  offset: [number, number, number];
+  scale: [number, number, number];
+  color: string;
+}
+
 export interface AssetEntry {
   id: string;
   name: string;
   category: "building" | "prop" | "character" | "environment" | "decoration" | "landmark" | "equipment";
   tags: string[];
-  domain: string[]; // subject/era/theme tags — "universal" matches all
+  domain: string[];
   file?: string;
   primitive_fallback: {
     type: "box" | "cylinder" | "sphere" | "cone";
     scale: [number, number, number];
     color: string;
   };
+  compound_parts?: CompoundPart[]; // multi-primitive composition for richer visuals
   description: string;
 }
 
@@ -44,7 +52,11 @@ export const ASSET_REGISTRY: AssetEntry[] = [
   { id: "character_child", name: "Child Character", category: "character", tags: ["child", "kid", "student", "young"], domain: ["universal"], primitive_fallback: { type: "cylinder", scale: [0.3, 1.2, 0.3], color: "#87CEEB" }, description: "A child or young student" },
 
   // ---- Universal Nature ----
-  { id: "tree_generic", name: "Tree", category: "decoration", tags: ["tree", "nature", "plant", "vegetation"], domain: ["universal"], primitive_fallback: { type: "cone", scale: [1.5, 4, 1.5], color: "#228B22" }, description: "A generic green tree" },
+  { id: "tree_generic", name: "Tree", category: "decoration", tags: ["tree", "nature", "plant", "vegetation"], domain: ["universal"], primitive_fallback: { type: "cone", scale: [1.5, 4, 1.5], color: "#228B22" }, compound_parts: [
+    { primitive: "cylinder", offset: [0, 0.8, 0], scale: [0.3, 1.6, 0.3], color: "#6B3A2A" },
+    { primitive: "cone", offset: [0, 2.8, 0], scale: [1.5, 2.5, 1.5], color: "#228B22" },
+    { primitive: "cone", offset: [0, 3.8, 0], scale: [1.0, 1.5, 1.0], color: "#2E8B57" },
+  ], description: "A generic green tree" },
   { id: "rock_large", name: "Large Rock", category: "decoration", tags: ["rock", "stone", "boulder"], domain: ["universal"], primitive_fallback: { type: "sphere", scale: [2, 1.5, 2], color: "#808080" }, description: "A large boulder" },
   { id: "bush", name: "Bush", category: "decoration", tags: ["bush", "shrub", "plant", "vegetation"], domain: ["universal"], primitive_fallback: { type: "sphere", scale: [1, 0.8, 1], color: "#2E8B57" }, description: "A green bush" },
   { id: "flower_patch", name: "Flower Patch", category: "decoration", tags: ["flower", "garden", "plant", "nature"], domain: ["universal"], primitive_fallback: { type: "sphere", scale: [0.8, 0.4, 0.8], color: "#FF69B4" }, description: "A patch of colorful flowers" },
@@ -61,7 +73,12 @@ export const ASSET_REGISTRY: AssetEntry[] = [
   { id: "art_pedestal", name: "Display Pedestal", category: "prop", tags: ["pedestal", "display", "stand", "sculpture", "museum"], domain: ["art", "museum"], primitive_fallback: { type: "cylinder", scale: [0.5, 1.2, 0.5], color: "#F5F5F5" }, description: "A white pedestal for displaying sculptures" },
 
   // -- Art Tools & Materials --
-  { id: "easel", name: "Painting Easel", category: "equipment", tags: ["easel", "painting", "canvas", "art"], domain: ["art", "renaissance"], primitive_fallback: { type: "box", scale: [0.8, 1.8, 0.6], color: "#D2B48C" }, description: "A wooden painting easel holding a canvas" },
+  { id: "easel", name: "Painting Easel", category: "equipment", tags: ["easel", "painting", "canvas", "art"], domain: ["art", "renaissance"], primitive_fallback: { type: "box", scale: [0.8, 1.8, 0.6], color: "#D2B48C" }, compound_parts: [
+    { primitive: "cylinder", offset: [-0.2, 0.9, 0], scale: [0.05, 1.8, 0.05], color: "#8B6914" },
+    { primitive: "cylinder", offset: [0.2, 0.9, 0], scale: [0.05, 1.8, 0.05], color: "#8B6914" },
+    { primitive: "cylinder", offset: [0, 0.7, 0.3], scale: [0.05, 1.4, 0.05], color: "#8B6914" },
+    { primitive: "box", offset: [0, 1.2, 0.02], scale: [0.7, 0.9, 0.03], color: "#FFFEF0" },
+  ], description: "A wooden painting easel holding a canvas" },
   { id: "canvas_blank", name: "Blank Canvas", category: "prop", tags: ["canvas", "painting", "blank", "art"], domain: ["art"], primitive_fallback: { type: "box", scale: [0.8, 1, 0.05], color: "#FFFEF0" }, description: "A blank stretched canvas" },
   { id: "canvas_painting", name: "Framed Painting", category: "prop", tags: ["painting", "frame", "artwork", "masterpiece"], domain: ["art", "renaissance", "museum"], primitive_fallback: { type: "box", scale: [1.2, 0.9, 0.08], color: "#DAA520" }, description: "A framed painting on canvas" },
   { id: "palette", name: "Paint Palette", category: "prop", tags: ["palette", "paint", "colors", "art", "brush"], domain: ["art"], primitive_fallback: { type: "sphere", scale: [0.35, 0.05, 0.3], color: "#D2691E" }, description: "An artist's paint palette with mixed colors" },
@@ -193,8 +210,19 @@ export const ASSET_REGISTRY: AssetEntry[] = [
   { id: "chinese_gate_tang", name: "Tang Dynasty City Gate", category: "landmark", tags: ["gate", "entrance", "chinese", "tang"], domain: ["history", "tang_dynasty", "ancient_chinese"], primitive_fallback: { type: "box", scale: [8, 6, 2], color: "#8B4513" }, description: "A grand wooden gate with curved rooflines typical of Tang architecture" },
   { id: "chinese_shop_front", name: "Chinese Shop Front", category: "building", tags: ["shop", "store", "market", "chinese"], domain: ["history", "tang_dynasty", "ancient_chinese"], primitive_fallback: { type: "box", scale: [5, 4, 4], color: "#A0522D" }, description: "A traditional Chinese storefront" },
   { id: "chinese_tavern", name: "Chinese Tavern", category: "building", tags: ["tavern", "inn", "chinese"], domain: ["history", "tang_dynasty", "ancient_chinese"], primitive_fallback: { type: "box", scale: [6, 5, 5], color: "#8B6914" }, description: "A two-story tavern with lanterns" },
-  { id: "chinese_house", name: "Chinese House", category: "building", tags: ["house", "home", "chinese"], domain: ["history", "tang_dynasty", "ancient_chinese"], primitive_fallback: { type: "box", scale: [5, 3, 4], color: "#D2B48C" }, description: "A traditional Chinese dwelling" },
-  { id: "pagoda", name: "Pagoda", category: "landmark", tags: ["pagoda", "tower", "buddhist", "chinese"], domain: ["history", "tang_dynasty", "ancient_chinese"], primitive_fallback: { type: "cylinder", scale: [3, 12, 3], color: "#CD853F" }, description: "A multi-tiered Buddhist pagoda" },
+  { id: "chinese_house", name: "Chinese House", category: "building", tags: ["house", "home", "chinese"], domain: ["history", "tang_dynasty", "ancient_chinese"], primitive_fallback: { type: "box", scale: [5, 3, 4], color: "#D2B48C" }, compound_parts: [
+    { primitive: "box", offset: [0, 1.2, 0], scale: [5, 2.4, 4], color: "#D2B48C" },
+    { primitive: "box", offset: [0, 2.8, 0], scale: [5.5, 0.8, 4.5], color: "#8B4513" },
+    { primitive: "box", offset: [0, 0, 1.8], scale: [1.2, 2, 0.1], color: "#654321" },
+  ], description: "A traditional Chinese dwelling" },
+  { id: "pagoda", name: "Pagoda", category: "landmark", tags: ["pagoda", "tower", "buddhist", "chinese"], domain: ["history", "tang_dynasty", "ancient_chinese"], primitive_fallback: { type: "cylinder", scale: [3, 12, 3], color: "#CD853F" }, compound_parts: [
+    { primitive: "box", offset: [0, 1.5, 0], scale: [4, 3, 4], color: "#CD853F" },
+    { primitive: "box", offset: [0, 3.8, 0], scale: [4.5, 0.4, 4.5], color: "#8B4513" },
+    { primitive: "box", offset: [0, 5, 0], scale: [3.2, 2.5, 3.2], color: "#CD853F" },
+    { primitive: "box", offset: [0, 6.8, 0], scale: [3.7, 0.4, 3.7], color: "#8B4513" },
+    { primitive: "box", offset: [0, 8, 0], scale: [2.4, 2, 2.4], color: "#CD853F" },
+    { primitive: "cone", offset: [0, 10, 0], scale: [1.5, 2, 1.5], color: "#8B4513" },
+  ], description: "A multi-tiered Buddhist pagoda" },
   { id: "lantern_red", name: "Red Lantern", category: "decoration", tags: ["lantern", "light", "chinese", "red"], domain: ["history", "ancient_chinese"], primitive_fallback: { type: "sphere", scale: [0.4, 0.5, 0.4], color: "#FF0000" }, description: "A traditional red Chinese lantern" },
   { id: "silk_roll", name: "Silk Roll", category: "prop", tags: ["silk", "fabric", "trade", "textile"], domain: ["history", "ancient_chinese", "silk_road"], primitive_fallback: { type: "cylinder", scale: [0.3, 0.8, 0.3], color: "#DC143C" }, description: "A roll of fine silk fabric" },
   { id: "ceramic_pot", name: "Ceramic Pot", category: "prop", tags: ["ceramic", "pottery", "chinese"], domain: ["history", "ancient_chinese", "art"], primitive_fallback: { type: "cylinder", scale: [0.4, 0.6, 0.4], color: "#4682B4" }, description: "A blue-and-white ceramic pot" },

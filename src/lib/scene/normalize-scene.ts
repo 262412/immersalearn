@@ -187,6 +187,7 @@ function normalizeStructure(s: any, i: number): Structure {
     id: str(s.id, `structure_${i}`),
     type: str(s.type, "decoration") as any,
     asset_id: s.asset_id || s.assetId || s.asset,
+    model_url: s.model_url || s.modelUrl,
     primitive: str(s.primitive, "box") as any,
     position: vec3(s.position),
     rotation: vec3(s.rotation),
@@ -219,6 +220,7 @@ function normalizeNPC(n: any, i: number): NPCInstance {
     name: str(n.name, `Character ${i + 1}`),
     avatar: {
       model: str(avatar.model || avatar.base, "character_male"),
+      model_url: avatar.model_url || avatar.modelUrl,
       clothing: avatar.clothing,
       accessories: Array.isArray(avatar.accessories) ? avatar.accessories : [],
       scale: num(avatar.scale, 1),
@@ -249,6 +251,7 @@ function normalizeInteractiveObject(o: any, i: number): InteractiveObject {
     id: str(o.id, `obj_${i}`),
     name: str(o.name || o.label, `Object ${i + 1}`),
     asset_id: o.asset_id || o.assetId,
+    model_url: o.model_url || o.modelUrl,
     primitive: str(o.primitive, "sphere") as any,
     position: vec3(o.position, [i * 2, 0.5, 0]),
     rotation: vec3(o.rotation),

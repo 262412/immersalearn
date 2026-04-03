@@ -331,105 +331,38 @@ export default function HomePage() {
     setIsGenerating(true);
 
     try {
-      // Stage 1: Knowledge Extraction
-      setGenerationStage("Extracting knowledge from textbook...");
+      // Stage 1: Planning (knowledge + narrative + world design)
+      setGenerationStage("Creating your adventure...");
       store.setGenerationProgress({
         stage: "extracting",
-        progress: 15,
-        message: "Analyzing textbook content...",
+        progress: 20,
+        message: "Designing your world and story...",
       });
 
-      const extractRes = await fetch("/api/extract", {
+      // Single unified API call replaces 4 old calls
+      const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           textbookContent: textContent,
+          preferences: { genre, difficulty, name: studentName || "Explorer" },
           subject,
           topic,
-          curriculumSpec: `Curriculum: ${curriculum}`,
+          curriculum,
         }),
       });
-      const extractData = await extractRes.json();
 
-      if (!extractRes.ok || !extractData.knowledgeGraph)
-        throw new Error(extractData.error || "Failed to extract knowledge");
-      const knowledgeGraph = extractData.knowledgeGraph;
-      store.setKnowledgeGraph(knowledgeGraph);
+      const data = await res.json();
 
-      // Stage 2: Script Generation
-      setGenerationStage("Writing interactive script...");
-      store.setGenerationProgress({
-        stage: "scripting",
-        progress: 40,
-        message: "Creating your adventure...",
-      });
-
-      const scriptRes = await fetch("/api/script", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          knowledgeGraph,
-          preferences: { genre, difficulty, name: studentName || "Explorer" },
-        }),
-      });
-      const scriptData = await scriptRes.json();
-
-      if (!scriptRes.ok || !scriptData.script)
-        throw new Error(scriptData.error || "Failed to generate script");
-      const script = scriptData.script;
-      store.setScript(script);
-
-      // Stage 3: Verification
-      setGenerationStage("Verifying factual accuracy...");
-      store.setGenerationProgress({
-        stage: "verifying",
-        progress: 60,
-        message: "Cross-checking facts...",
-      });
-
-      const verifyRes = await fetch("/api/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ script, knowledgeGraph }),
-      });
-      const { report } = await verifyRes.json();
-      if (report) store.setVerificationReport(report);
-
-      // Stage 4: Scene Generation (first scene)
-      setGenerationStage("Building 3D world...");
-      store.setGenerationProgress({
-        stage: "building_scene",
-        progress: 80,
-        message: "Constructing your world...",
-      });
-
-      const firstAct = script.acts[0];
-      const firstScene = firstAct?.scenes[0];
-
-      if (firstAct && firstScene) {
-        const sceneRes = await fetch("/api/scene", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            script,
-            actId: firstAct.id,
-            sceneId: firstScene.id,
-          }),
-        });
-        const sceneData = await sceneRes.json();
-
-        if (!sceneRes.ok || !sceneData.sceneGraph) {
-          throw new Error(sceneData.error || "Failed to build 3D scene");
-        }
-
-        store.addSceneGraph(firstScene.id, sceneData.sceneGraph);
-        store.setCurrentSceneGraph(sceneData.sceneGraph);
-
-        // Initialize session
-        store.initSession(script.id, firstAct.id, firstScene.id);
-      } else {
-        throw new Error("Script has no scenes");
+      if (!res.ok || !data.worldPlan || !data.sceneGraph) {
+        throw new Error(data.error || "Failed to generate experience");
       }
+
+      // Store results
+      store.setWorldPlan(data.worldPlan);
+      store.addSceneGraph(data.sceneId, data.sceneGraph);
+      store.setCurrentSceneGraph(data.sceneGraph);
+      store.initSession(data.worldPlan.id, data.sceneId);
 
       store.setGenerationProgress({
         stage: "ready",
@@ -438,7 +371,7 @@ export default function HomePage() {
       });
 
       // Navigate to experience
-      router.push(`/experience/${script.id}`);
+      router.push(`/experience/${data.worldPlan.id}`);
     } catch (error: any) {
       console.error("Generation error:", error);
       setGenerationStage(`Error: ${error.message}`);

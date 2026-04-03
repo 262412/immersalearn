@@ -7,6 +7,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Script, Scene, Act, SceneGraph } from "@/lib/types";
 import { ASSET_REGISTRY, type AssetEntry } from "@/lib/scene/asset-registry";
+import { fixJSON } from "@/lib/utils/fix-json";
 
 // Filter assets relevant to the scene to reduce tokens sent to AI
 function getRelevantAssets(setting: Record<string, string>, subject?: string): AssetEntry[] {
@@ -161,18 +162,24 @@ ${getRelevantAssets(setting, script.meta?.subject).map((a) =>
 ).join("\n")}
 
 ## Instructions
-Create a SceneGraph JSON. Keep it focused:
-- Place NPCs from the character list above (use their exact id/name)
-- Create 3-5 interactive objects with on_interact actions
-- Set up environment matching the setting
-- Use asset IDs where available; use primitives as fallback
-- All positions as [x,y,z] arrays, particles as array
+Create a SceneGraph JSON with ALL of these sections filled:
 
-Return ONLY valid JSON, no markdown fences.`;
+1. "environment" — skybox, terrain, lighting (sun + ambient), audio
+2. "layout" — player_spawn with position [0, 1.7, 5] and look_at [0, 1.7, 0]
+3. "structures" — at least 4-6 buildings/decorations placed around the scene
+4. "npcs" — one entry for EACH character listed above, with position, name, character_ref, behavior (dialogue_enabled: true, interaction_radius: 3)
+5. "interactive_objects" — at least 3-5 objects with on_interact: { type: "show_panel", title: "...", description: "..." }
+6. "triggers" — at least 1 trigger
+7. "cinematic_sequences" — can be empty array []
+
+Every object needs: id, position [x,y,z], rotation [0,0,0], scale [w,h,d], primitive ("box"/"sphere"/"cylinder"/"cone"), material {color:"#hex"}.
+Spread objects around the scene — don't stack them at [0,0,0].
+
+Return ONLY a JSON object starting with {.`;
 
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 4000,
+    max_tokens: 6000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userMessage }],
   });
@@ -185,7 +192,7 @@ Return ONLY valid JSON, no markdown fences.`;
     throw new Error("Failed to extract SceneGraph JSON from scene director response");
   }
 
-  const sceneGraph: SceneGraph = JSON.parse(jsonMatch[1]);
+  const sceneGraph: SceneGraph = JSON.parse(fixJSON(jsonMatch[1]));
 
   // Ensure required fields
   if (!sceneGraph.scene_id) {

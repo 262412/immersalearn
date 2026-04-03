@@ -1,7 +1,7 @@
 "use client";
 
-import * as THREE from "three";
 import type { Structure } from "@/lib/types/scene-graph";
+import { ModelLoader } from "./ModelLoader";
 
 interface SceneObjectsProps {
   structures: Structure[];
@@ -18,14 +18,36 @@ export function SceneObjects({ structures }: SceneObjectsProps) {
 }
 
 function StructureObject({ structure }: { structure: Structure }) {
-  const position = structure.position || [0, 0, 0];
-  const rotation = structure.rotation || [0, 0, 0];
-  const scale = structure.scale || [1, 1, 1];
+  const position = (structure.position || [0, 0, 0]) as [number, number, number];
+  const rotation = (structure.rotation || [0, 0, 0]) as [number, number, number];
+  const scale = (structure.scale || [1, 1, 1]) as [number, number, number];
   const material = structure.material;
   const label = structure.label;
-
   const primitive = structure.primitive || "box";
 
+  // If model_url is available, use the ModelLoader
+  if (structure.model_url) {
+    return (
+      <group>
+        <ModelLoader
+          url={structure.model_url}
+          position={position}
+          rotation={rotation}
+          scale={scale}
+          fallbackColor={material?.color || "#888888"}
+          fallbackPrimitive={primitive as any}
+          fallbackScale={scale}
+          castShadow
+        />
+        {label && <FloatingLabel position={position} text={label} height={scale[1] + 0.5} />}
+        {structure.children?.map((child, i) => (
+          <StructureObject key={`${child.id}_${i}`} structure={child} />
+        ))}
+      </group>
+    );
+  }
+
+  // Fallback: primitive rendering (existing behavior)
   const matProps = {
     color: material?.color || "#888888",
     metalness: material?.metalness ?? 0.1,
@@ -44,48 +66,28 @@ function StructureObject({ structure }: { structure: Structure }) {
         <meshStandardMaterial {...matProps} />
       </mesh>
 
-      {/* Label floating above object */}
-      {label && (
-        <FloatingLabel text={label} height={scale[1] + 0.5} />
-      )}
+      {label && <FloatingLabel position={[0, 0, 0]} text={label} height={scale[1] + 0.5} />}
 
-      {/* Render children */}
-      {structure.children?.map((child) => (
-        <StructureObject key={child.id} structure={child} />
+      {structure.children?.map((child, i) => (
+        <StructureObject key={`${child.id}_${i}`} structure={child} />
       ))}
     </group>
   );
 }
 
-function PrimitiveGeometry({
-  type,
-  scale,
-}: {
-  type: string;
-  scale: [number, number, number];
-}) {
+function PrimitiveGeometry({ type, scale }: { type: string; scale: [number, number, number] }) {
   switch (type) {
-    case "sphere":
-      return <sphereGeometry args={[scale[0] / 2, 16, 16]} />;
-    case "cylinder":
-      return <cylinderGeometry args={[scale[0] / 2, scale[0] / 2, scale[1], 16]} />;
-    case "cone":
-      return <coneGeometry args={[scale[0] / 2, scale[1], 16]} />;
-    case "box":
-    default:
-      return <boxGeometry args={scale} />;
+    case "sphere": return <sphereGeometry args={[scale[0] / 2, 16, 16]} />;
+    case "cylinder": return <cylinderGeometry args={[scale[0] / 2, scale[0] / 2, scale[1], 16]} />;
+    case "cone": return <coneGeometry args={[scale[0] / 2, scale[1], 16]} />;
+    case "box": default: return <boxGeometry args={scale} />;
   }
 }
 
-function FloatingLabel({ text, height }: { text: string; height: number }) {
-  // Simple sprite-based label
+function FloatingLabel({ position, text, height }: { position: [number, number, number]; text: string; height: number }) {
   return (
-    <sprite position={[0, height, 0]} scale={[text.length * 0.15, 0.3, 1]}>
-      <spriteMaterial
-        color="#ffffff"
-        transparent
-        opacity={0.8}
-      />
+    <sprite position={[position[0], position[1] + height, position[2]]} scale={[text.length * 0.15, 0.3, 1]}>
+      <spriteMaterial color="#ffffff" transparent opacity={0.8} />
     </sprite>
   );
 }

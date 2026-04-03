@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Html, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import type { InteractiveObject } from "@/lib/types/scene-graph";
+import { ModelLoader } from "./ModelLoader";
 
 interface InteractiveObjectsProps {
   objects: InteractiveObject[];
@@ -71,27 +72,35 @@ function InteractiveObjectEntity({
 
   return (
     <group>
-      <mesh
-        ref={meshRef}
-        position={position}
-        rotation={
-          rotation.map((r) => (r * Math.PI) / 180) as [
-            number,
-            number,
-            number,
-          ]
-        }
-        castShadow
-        userData={{ interactId: obj.id, interactType: "object" }}
-      >
-        <PrimitiveGeometry type={primitive} scale={scale} />
-        <meshStandardMaterial
-          color={color}
-          emissive={emissiveColor}
-          emissiveIntensity={emissiveIntensity}
-          roughness={0.5}
+      {obj.model_url ? (
+        <ModelLoader
+          url={obj.model_url}
+          position={position}
+          rotation={rotation}
+          scale={scale}
+          fallbackColor={color}
+          fallbackPrimitive={primitive as any}
+          fallbackScale={scale}
+          castShadow
+          userData={{ interactId: obj.id, interactType: "object" }}
         />
-      </mesh>
+      ) : (
+        <mesh
+          ref={meshRef}
+          position={position}
+          rotation={rotation.map((r) => (r * Math.PI) / 180) as [number, number, number]}
+          castShadow
+          userData={{ interactId: obj.id, interactType: "object" }}
+        >
+          <PrimitiveGeometry type={primitive} scale={scale} />
+          <meshStandardMaterial
+            color={color}
+            emissive={emissiveColor}
+            emissiveIntensity={emissiveIntensity}
+            roughness={0.5}
+          />
+        </mesh>
+      )}
 
       {/* Label on hover when nearby */}
       {isNearby && (

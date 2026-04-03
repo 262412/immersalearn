@@ -19,20 +19,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const act = script.acts.find((a) => a.id === actId);
+    const acts = script.acts || [];
+    const act = acts.find((a) => a.id === actId);
     if (!act) {
-      return NextResponse.json({ error: "Act not found" }, { status: 404 });
+      return NextResponse.json({ error: `Act "${actId}" not found in ${acts.length} acts` }, { status: 404 });
     }
 
-    const scene = act.scenes.find((s) => s.id === sceneId);
+    const scenes = act.scenes || [];
+    const scene = scenes.find((s) => s.id === sceneId);
     if (!scene) {
-      return NextResponse.json({ error: "Scene not found" }, { status: 404 });
+      return NextResponse.json({ error: `Scene "${sceneId}" not found in act "${actId}" (${scenes.length} scenes)` }, { status: 404 });
     }
 
     const rawSceneGraph = await generateSceneGraph(script, act, scene);
 
+    console.log("[Scene Director] Raw output keys:", Object.keys(rawSceneGraph || {}));
+    console.log("[Scene Director] structures:", (rawSceneGraph as any)?.structures?.length ?? 0);
+    console.log("[Scene Director] npcs:", (rawSceneGraph as any)?.npcs?.length ?? 0);
+    console.log("[Scene Director] interactive_objects:", (rawSceneGraph as any)?.interactive_objects?.length ?? 0);
+
     // Normalize: fill all missing fields so the renderer never crashes
     const sceneGraph = normalizeSceneGraph(rawSceneGraph);
+
+    console.log("[Normalized] structures:", sceneGraph.structures.length,
+      "npcs:", sceneGraph.npcs.length,
+      "objects:", sceneGraph.interactive_objects.length);
 
     return NextResponse.json({ sceneGraph });
   } catch (error: any) {

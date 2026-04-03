@@ -87,7 +87,8 @@ export interface Structure {
   id: string;
   type: "building" | "landmark" | "decoration" | "terrain_feature";
   asset_id?: string; // references asset registry
-  primitive?: "box" | "cylinder" | "sphere" | "cone"; // fallback if no asset
+  model_url?: string; // URL to GLB/GLTF model (takes priority over primitive)
+  primitive?: "box" | "cylinder" | "sphere" | "cone"; // fallback if no model
   position: [number, number, number];
   rotation: [number, number, number];
   scale: [number, number, number];
@@ -111,6 +112,7 @@ export interface NPCInstance {
   name: string;
   avatar: {
     model: string; // asset ID or preset
+    model_url?: string; // URL to GLB/GLTF character model
     clothing?: string;
     accessories?: string[];
     scale?: number;
@@ -138,6 +140,7 @@ export interface InteractiveObject {
   id: string;
   name: string;
   asset_id?: string;
+  model_url?: string; // URL to GLB/GLTF model
   primitive?: "box" | "cylinder" | "sphere";
   position: [number, number, number];
   rotation: [number, number, number];

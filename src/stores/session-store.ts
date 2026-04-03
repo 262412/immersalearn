@@ -1,18 +1,14 @@
 import { create } from "zustand";
 import type {
-  Script,
   SceneGraph,
-  KnowledgeGraph,
   SessionState,
   GenerationProgress,
-  VerificationReport,
+  WorldPlan,
 } from "@/lib/types";
 
 interface AppState {
-  // Generation pipeline
-  knowledgeGraph: KnowledgeGraph | null;
-  script: Script | null;
-  verificationReport: VerificationReport | null;
+  // Generation pipeline (new: unified WorldPlan)
+  worldPlan: WorldPlan | null;
   sceneGraphs: Map<string, SceneGraph>;
   generationProgress: GenerationProgress;
 
@@ -27,16 +23,14 @@ interface AppState {
   isPaused: boolean;
 
   // Actions - Pipeline
-  setKnowledgeGraph: (kg: KnowledgeGraph) => void;
-  setScript: (script: Script) => void;
-  setVerificationReport: (report: VerificationReport) => void;
+  setWorldPlan: (plan: WorldPlan) => void;
   addSceneGraph: (sceneId: string, sg: SceneGraph) => void;
+  setCurrentSceneGraph: (sg: SceneGraph) => void;
   setGenerationProgress: (progress: GenerationProgress) => void;
 
   // Actions - Session
-  initSession: (scriptId: string, firstActId: string, firstSceneId: string) => void;
-  setCurrentScene: (actId: string, sceneId: string) => void;
-  setCurrentSceneGraph: (sg: SceneGraph) => void;
+  initSession: (planId: string, sceneId: string) => void;
+  setCurrentScene: (sceneId: string) => void;
   completeInteraction: (interactionId: string) => void;
   collectItem: (itemId: string) => void;
   logChoice: (interactionId: string, choiceId: string) => void;
@@ -58,11 +52,9 @@ const initialProgress: GenerationProgress = {
   message: "Ready to start",
 };
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   // Initial state
-  knowledgeGraph: null,
-  script: null,
-  verificationReport: null,
+  worldPlan: null,
   sceneGraphs: new Map(),
   generationProgress: initialProgress,
   session: null,
@@ -73,24 +65,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   isPaused: false,
 
   // Pipeline actions
-  setKnowledgeGraph: (kg) => set({ knowledgeGraph: kg }),
-  setScript: (script) => set({ script }),
-  setVerificationReport: (report) => set({ verificationReport: report }),
+  setWorldPlan: (plan) => set({ worldPlan: plan }),
   addSceneGraph: (sceneId, sg) =>
     set((state) => {
       const next = new Map(state.sceneGraphs);
       next.set(sceneId, sg);
       return { sceneGraphs: next };
     }),
+  setCurrentSceneGraph: (sg) => set({ currentSceneGraph: sg }),
   setGenerationProgress: (progress) => set({ generationProgress: progress }),
 
   // Session actions
-  initSession: (scriptId, firstActId, firstSceneId) =>
+  initSession: (planId, sceneId) =>
     set({
       session: {
-        script_id: scriptId,
-        current_act: firstActId,
-        current_scene: firstSceneId,
+        script_id: planId,
+        current_act: "act_1",
+        current_scene: sceneId,
         completed_interactions: [],
         collected_items: [],
         choices_log: [],
@@ -100,15 +91,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       },
     }),
 
-  setCurrentScene: (actId, sceneId) =>
+  setCurrentScene: (sceneId) =>
     set((state) => {
       if (!state.session) return {};
-      return {
-        session: { ...state.session, current_act: actId, current_scene: sceneId },
-      };
+      return { session: { ...state.session, current_scene: sceneId } };
     }),
-
-  setCurrentSceneGraph: (sg) => set({ currentSceneGraph: sg }),
 
   completeInteraction: (interactionId) =>
     set((state) => {
@@ -127,10 +114,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!state.session) return {};
       if (state.session.collected_items.includes(itemId)) return {};
       return {
-        session: {
-          ...state.session,
-          collected_items: [...state.session.collected_items, itemId],
-        },
+        session: { ...state.session, collected_items: [...state.session.collected_items, itemId] },
       };
     }),
 
@@ -153,10 +137,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!state.session) return {};
       if (state.session.discoveries.includes(discoveryId)) return {};
       return {
-        session: {
-          ...state.session,
-          discoveries: [...state.session.discoveries, discoveryId],
-        },
+        session: { ...state.session, discoveries: [...state.session.discoveries, discoveryId] },
       };
     }),
 
@@ -169,9 +150,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Reset
   reset: () =>
     set({
-      knowledgeGraph: null,
-      script: null,
-      verificationReport: null,
+      worldPlan: null,
       sceneGraphs: new Map(),
       generationProgress: initialProgress,
       session: null,

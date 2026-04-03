@@ -1,6 +1,7 @@
 export * from "./knowledge-graph";
 export * from "./script";
 export * from "./scene-graph";
+export * from "./world-plan";
 
 // ---- Shared Types ----
 
