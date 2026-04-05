@@ -1,15 +1,15 @@
 // ============================================
 // Agent 3: NPC Dialogue Agent (Runtime)
 // Drives real-time NPC conversations
-// Constrained by KnowledgeGraph (anti-hallucination)
+// Constrained by PlanFacts (anti-hallucination)
 // ============================================
 
 import Anthropic from "@anthropic-ai/sdk";
-import type { KnowledgeGraph, ScriptCharacter, Fact } from "@/lib/types";
+import type { WorldCharacter, PlanFact } from "@/lib/types/world-plan";
 
 interface DialogueContext {
-  character: ScriptCharacter;
-  knowledgeGraph: KnowledgeGraph;
+  character: WorldCharacter;
+  facts: PlanFact[];
   currentScene: {
     id: string;
     description: string;
@@ -21,7 +21,7 @@ interface DialogueContext {
     discoveries: string[];
     current_objective: string;
   };
-  relevantFacts: Fact[]; // facts this NPC should know
+  relevantFacts: PlanFact[]; // facts this NPC should know
 }
 
 function buildNPCSystemPrompt(ctx: DialogueContext): string {
@@ -78,7 +78,6 @@ export async function generateNPCResponse(
   const systemPrompt = buildNPCSystemPrompt(ctx);
 
   const messages: Anthropic.MessageParam[] = [
-    // Include conversation history
     ...ctx.conversationHistory.map(
       (msg) =>
         ({
@@ -86,7 +85,6 @@ export async function generateNPCResponse(
           content: msg.content,
         }) as Anthropic.MessageParam
     ),
-    // Add new student message
     {
       role: "user",
       content: studentMessage,
@@ -114,20 +112,15 @@ export async function generateNPCGreeting(
 }
 
 // Get facts relevant to a specific NPC
+// Uses character.knowledge_facts (explicit IDs) + sceneFactIds, no string matching
 export function getRelevantFacts(
-  character: ScriptCharacter,
-  knowledgeGraph: KnowledgeGraph,
-  sceneInteractionFactIds: string[]
-): Fact[] {
-  // Combine facts from the character's knowledge role + scene's interactions
-  const allFactIds = new Set(sceneInteractionFactIds);
-
-  // Also include facts related to the character's knowledge domain
-  const relevantFacts = knowledgeGraph.facts.filter(
-    (f) =>
-      allFactIds.has(f.id) ||
-      f.statement.toLowerCase().includes(character.knowledge_role.toLowerCase())
-  );
-
-  return relevantFacts;
+  character: WorldCharacter,
+  facts: PlanFact[],
+  sceneFactIds: string[]
+): PlanFact[] {
+  const allFactIds = new Set([
+    ...sceneFactIds,
+    ...(character.knowledge_facts || []),
+  ]);
+  return facts.filter((f) => allFactIds.has(f.id));
 }

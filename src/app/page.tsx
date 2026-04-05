@@ -334,7 +334,7 @@ export default function HomePage() {
       // Stage 1: Planning (knowledge + narrative + world design)
       setGenerationStage("Creating your adventure...");
       store.setGenerationProgress({
-        stage: "extracting",
+        stage: "planning",
         progress: 20,
         message: "Designing your world and story...",
       });

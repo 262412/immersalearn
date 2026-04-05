@@ -5,8 +5,24 @@
 // designed together.
 // ============================================
 
-import type { Genre, PedagogyMethod } from "./script";
-import type { BloomLevel } from "./knowledge-graph";
+export type Genre = "adventure" | "mystery" | "simulation" | "roleplay" | "documentary";
+
+export type PedagogyMethod =
+  | "worked_example"
+  | "retrieval_practice"
+  | "dual_coding"
+  | "scaffolding"
+  | "interleaving"
+  | "elaborative_interrogation"
+  | "spaced_repetition";
+
+export type BloomLevel =
+  | "remember"
+  | "understand"
+  | "apply"
+  | "analyze"
+  | "evaluate"
+  | "create";
 
 // ---- Top-level Plan ----
 

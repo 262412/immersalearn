@@ -8,7 +8,7 @@ import { ChoicePanel } from "@/components/ui/ChoicePanel";
 import { ExaminePopup } from "@/components/ui/ExaminePopup";
 import { NarrationOverlay } from "@/components/ui/NarrationOverlay";
 import { HUD } from "@/components/ui/HUD";
-import type { ChoiceContent, InteractAction } from "@/lib/types";
+import type { ChoiceContent } from "@/lib/types";
 
 // Dynamic import for Three.js (no SSR)
 const SceneRenderer = dynamic(
@@ -77,38 +77,6 @@ export default function ExperiencePage() {
       document.exitPointerLock();
       store.openDialogue(npcId);
 
-      // Build a script-like character for the chat API
-      const chatCharacter = {
-        id: character.id,
-        name: character.name,
-        role: character.role,
-        personality: character.personality,
-        appearance: character.appearance,
-        speech_style: character.speech_style,
-        knowledge_role: character.role,
-      };
-
-      // Build a minimal knowledge graph for the chat API
-      const chatKG = {
-        id: worldPlan.id,
-        subject: worldPlan.knowledge.subject,
-        curriculum: worldPlan.knowledge.curriculum || "",
-        topic: worldPlan.knowledge.topic,
-        learning_objectives: [],
-        facts: facts.map((f) => ({
-          ...f,
-          linked_objectives: [],
-          confidence: "verified" as const,
-          source_quote: "",
-        })),
-        relationships: [],
-        key_figures: [],
-        key_events: [],
-        key_concepts: [],
-      };
-
-      const sceneFactIds = character.knowledge_facts || [];
-
       setIsDialogueLoading(true);
       try {
         const res = await fetch("/api/chat", {
@@ -116,8 +84,8 @@ export default function ExperiencePage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: "[Student approaches and makes eye contact]",
-            character: chatCharacter,
-            knowledgeGraph: chatKG,
+            character,
+            facts,
             currentScene: {
               id: currentWorldScene.id,
               description: currentWorldScene.story.description,
@@ -129,7 +97,7 @@ export default function ExperiencePage() {
               discoveries: session?.discoveries || [],
               current_objective: currentWorldScene.story.objective,
             },
-            sceneFactIds,
+            sceneFactIds: character.knowledge_facts || [],
           }),
         });
 
@@ -173,27 +141,8 @@ export default function ExperiencePage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message,
-            character: {
-              id: character.id,
-              name: character.name,
-              role: character.role,
-              personality: character.personality,
-              appearance: character.appearance,
-              speech_style: character.speech_style,
-              knowledge_role: character.role,
-            },
-            knowledgeGraph: {
-              id: worldPlan.id,
-              subject: worldPlan.knowledge.subject,
-              curriculum: "",
-              topic: worldPlan.knowledge.topic,
-              learning_objectives: [],
-              facts: facts.map((f) => ({ ...f, linked_objectives: [], confidence: "verified" as const })),
-              relationships: [],
-              key_figures: [],
-              key_events: [],
-              key_concepts: [],
-            },
+            character,
+            facts,
             currentScene: {
               id: currentWorldScene.id,
               description: currentWorldScene.story.description,

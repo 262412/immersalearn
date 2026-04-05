@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, X, RefreshCw } from "lucide-react";
-import type { ChoiceContent, ChoiceOption } from "@/lib/types/script";
+import type { ChoiceContent, ChoiceOption } from "@/lib/types";
 
 interface ChoicePanelProps {
   interaction: ChoiceContent;

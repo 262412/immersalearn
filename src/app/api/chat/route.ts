@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateNPCResponse, getRelevantFacts } from "@/lib/agents/npc-dialogue";
-import type { KnowledgeGraph, ScriptCharacter, Fact } from "@/lib/types";
+import type { WorldCharacter, PlanFact } from "@/lib/types/world-plan";
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,15 +8,15 @@ export async function POST(req: NextRequest) {
     const {
       message,
       character,
-      knowledgeGraph,
+      facts,
       currentScene,
       conversationHistory,
       studentProgress,
       sceneFactIds,
     } = body as {
       message: string;
-      character: ScriptCharacter;
-      knowledgeGraph: KnowledgeGraph;
+      character: WorldCharacter;
+      facts: PlanFact[];
       currentScene: {
         id: string;
         description: string;
@@ -31,23 +31,23 @@ export async function POST(req: NextRequest) {
       sceneFactIds: string[];
     };
 
-    if (!message || !character || !knowledgeGraph) {
+    if (!message || !character || !facts) {
       return NextResponse.json(
-        { error: "message, character, and knowledgeGraph are required" },
+        { error: "message, character, and facts are required" },
         { status: 400 }
       );
     }
 
     const relevantFacts = getRelevantFacts(
       character,
-      knowledgeGraph,
+      facts,
       sceneFactIds || []
     );
 
     const response = await generateNPCResponse(
       {
         character,
-        knowledgeGraph,
+        facts,
         currentScene: currentScene || {
           id: "unknown",
           description: "A scene",

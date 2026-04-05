@@ -5,10 +5,9 @@ import { Sparkles, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 
 const STAGES = [
   { key: "uploading", label: "Uploading Material", icon: "📄" },
-  { key: "extracting", label: "Extracting Knowledge", icon: "🧠" },
-  { key: "scripting", label: "Writing Script", icon: "📝" },
-  { key: "verifying", label: "Verifying Facts", icon: "🔍" },
-  { key: "building_scene", label: "Building 3D World", icon: "🌍" },
+  { key: "planning", label: "Planning Your World", icon: "🧠" },
+  { key: "building", label: "Building 3D Scene", icon: "🌍" },
+  { key: "assembling", label: "Assembling World", icon: "🔧" },
   { key: "ready", label: "Ready!", icon: "✅" },
 ];
 
